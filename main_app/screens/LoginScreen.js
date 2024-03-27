@@ -1,114 +1,76 @@
-import { View, Text, Image, StatusBar, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
+import { View, Text, Image, StatusBar, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function LoginScreen() {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
-            <Image style={styles.backgroundImage} source={require('../assets/background.png')} />
-
-            {/*lights */}
-            <View style={styles.lightsContainer}>
-                <Image style={[styles.lightImage, styles.leftLight]} source={require('../assets/light.png')} />
-                <Image style={[styles.lightImage, styles.rightLight]} source={require('../assets/light.png')} />
-            </View>
-
-            {/*title and form*/}
             <View style={styles.contentContainer}>
-                {/*title */}
-                <View style={styles.titleContainer}>
-                    <Text style={styles.titleText}>
-                        Login
-                    </Text>
-                </View>
-
-                {/* form */}
+                <Text style={styles.titleText}>Login</Text>
                 <View style={styles.formContainer}>
-                    <View style={styles.inputContainer}>
-                        <TextInput placeholder='Email' placeholderTextColor={'gray'} style={styles.input} />
-                    </View>
-                    <View style={styles.inputContainer}>
-                        <TextInput placeholder='Password' placeholderTextColor={'gray'} style={styles.input} />
-                    </View>
+                    <TextInput placeholder='Email' placeholderTextColor='gray' style={styles.input} />
+                    <TextInput placeholder='Password' placeholderTextColor='gray' style={styles.input} />
                     <TouchableOpacity style={styles.loginButton}>
                         <Text style={styles.loginButtonText}>Login</Text>
                     </TouchableOpacity>
                 </View>
+                <TouchableOpacity style={styles.signUpButton}>
+                    <Text style={styles.signUpButtonText}>Don't have an account? Sign up</Text>
+                </TouchableOpacity>
             </View>
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: 'white',
         flex: 1,
+        backgroundColor: '#0F172A',
+        position: 'relative', 
     },
     backgroundImage: {
         position: 'absolute',
-        height: '110%', // Increase height to take up more space
+        height: '100%',
         width: '100%',
-        top: 0, // Move the background image to the top
     },
-    lightsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between', // Change to space-between to make them asymmetric
-        position: 'absolute',
-        width: '100%',
-        paddingHorizontal: 20, // Add horizontal padding to evenly space the lights from the sides
-    },
-    lightImage: {
-        height: 225,
-        width: 90,
-    },
-
     contentContainer: {
         flex: 1,
-        justifyContent: 'space-around',
-        paddingTop: 40,
-        paddingBottom: 10,
-    },
-    titleContainer: {
+        justifyContent: 'center',
         alignItems: 'center',
+        paddingHorizontal: 20,
     },
     titleText: {
-        color: 'white',
-        fontWeight: 'bold',
+        color: '#D3D3D3',
         fontSize: 40,
-        marginTop: 80,
-    },
-    formContainer: {
-        alignItems: 'center',
-        marginHorizontal: 20,
-        marginTop: 40,
-    },
-    inputContainer: {
-        backgroundColor: 'rgba(0,0,0,0.1)',
-        padding: 10,
-        borderRadius: 10,
-        width: '100%',
-        height: 40,
+        fontWeight: 'bold',
         marginBottom: 20,
     },
+    formContainer: {
+        width: '100%',
+    },
     input: {
-        color: 'black',
+        backgroundColor: '#141E36',
+        borderRadius: 10,
+        height: 40,
+        paddingHorizontal: 10,
+        marginBottom: 20,
     },
     loginButton: {
         backgroundColor: '#87CEEB',
-        paddingVertical: 15,
-        paddingHorizontal: 50,
         borderRadius: 10,
-        marginTop: 20,
+        paddingVertical: 15,
+        alignItems: 'center',
     },
     loginButtonText: {
         color: 'white',
         fontWeight: 'bold',
         fontSize: 18,
-        textAlign: 'center',
     },
-    signUpText: {
-        color: 'white',
-        fontSize: 16,
+    signUpButton: {
         marginTop: 20,
+    },
+    signUpButtonText: {
+        color: '#87CEEB',
+        fontSize: 16,
     },
 });
