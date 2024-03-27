@@ -1,32 +1,66 @@
 import React from 'react';
 import { View, Text, Image, StatusBar, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
+
+    const [email, setEmail] = React.useState('');
+    const [password, setPassword] = React.useState('');
+
+    const handleLogin = () => {
+        const data = {
+            email,
+            password,
+        }
+
+
+        // send the data to the server
+        axios.post('https://3268-199-111-212-104.ngrok-free.app/api/login', data).then((response) => {
+            uid = response.data;
+            save('uid', uid);
+            navigation.navigate('Home');
+
+        }).catch((error) => {
+            console.log('Error message:', error.message);
+        });
+    }
+
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <View style={styles.contentContainer}>
                 <Text style={styles.titleText}>Login</Text>
                 <View style={styles.formContainer}>
-                    <TextInput placeholder='Email' placeholderTextColor='gray' style={styles.input} />
-                    <TextInput placeholder='Password' placeholderTextColor='gray' style={styles.input} />
+                    <TextInput placeholder='Email' placeholderTextColor='gray' style={styles.input} value={email} onChangeText={setEmail} />
+                    <TextInput placeholder='Password' placeholderTextColor='gray' style={styles.input} value={password} onChangeText={setPassword} />
                     <TouchableOpacity style={styles.loginButton}>
                         <Text style={styles.loginButtonText}>Login</Text>
                     </TouchableOpacity>
+
+       
+
+                    <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Home')}>
+                        <Text style={styles.loginButtonText}>Go Home</Text>
+                    </TouchableOpacity>
+
+
+
+              
                 </View>
-                <TouchableOpacity style={styles.signUpButton}>
+                <TouchableOpacity style={styles.signUpButton} onPress={() => navigation.navigate('SignUp')}>
                     <Text style={styles.signUpButtonText}>Don't have an account? Sign up</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#0F172A',
-        position: 'relative', 
+        position: 'relative',
     },
     backgroundImage: {
         position: 'absolute',

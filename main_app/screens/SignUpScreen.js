@@ -1,17 +1,60 @@
 import React from 'react';
 import { View, Text, Image, StatusBar, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
 
-export default function LoginScreen() {
+
+export default function SignUpScreen({navigation}) {
+
+    async function save(key, value) {
+        await SecureStore.setItemAsync(key, value);
+    }
+
+    async function getValueFor(key) {
+        let result = await SecureStore.getItemAsync(key);
+        return result;
+    }
+    
+
+     // get the input values
+     const [email, setEmail] = React.useState('');
+     const [password, setPassword] = React.useState('');
+     const [name, setName] = React.useState('');
+ 
+     // handle the form submission
+     const handleSignUp = () => {
+         const data = {
+             email,
+             password,
+             name
+         }
+ 
+ 
+         // send the data to the server
+         axios.post('https://3268-199-111-212-104.ngrok-free.app/api/register_user', data).then((response) => {
+             uid = response.data;         
+             console.log(uid);
+             console.log(typeof uid);
+             save('uid', uid);
+             navigation.navigate('Home');
+ 
+         }).catch((error) => {
+             console.log('Error message:', error.message);
+         });
+     }
+ 
+
+     
     return (
         <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <View style={styles.contentContainer}>
                 <Text style={styles.titleText}>Login</Text>
                 <View style={styles.formContainer}>
-                    <TextInput placeholder='Name' placeholderTextColor='gray' style={styles.input}/>
-                    <TextInput placeholder='Email' placeholderTextColor='gray' style={styles.input} />
-                    <TextInput placeholder='Password' placeholderTextColor='gray' style={styles.input} />
-                    <TouchableOpacity style={styles.signUpButton}>
+                    <TextInput placeholder='Name' placeholderTextColor='gray' style={styles.input} value={name} onChangeText={setName}/>
+                    <TextInput placeholder='Email' placeholderTextColor='gray' style={styles.input} value={email} onChangeText={setEmail} />
+                    <TextInput placeholder='Password' placeholderTextColor='gray' style={styles.input} value={password} onChangeText={setPassword} />
+                    <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
                         <Text style={styles.signUpButtonText}>Sign Up</Text>
                     </TouchableOpacity>
                 </View>
