@@ -1,20 +1,7 @@
 import { View, Text, Image, StatusBar, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import React from 'react';
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
-
-
-
-async function save(key, value) {
-    await SecureStore.setItemAsync(key, value);
-}
-
-async function getValueFor(key) {
-    let result = await SecureStore.getItemAsync(key);
-    return result;
-}
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function Home({ navigation }) {
@@ -24,7 +11,7 @@ export default function Home({ navigation }) {
 
     async function getProfile(uid) {
         console.log(uid);
-        axios.get(' https://3268-199-111-212-104.ngrok-free.app/api/get_profile', {
+        axios.get('https://26de-199-111-212-3.ngrok-free.app/api/get_profile', {
             params: {
                 uid: uid
             }
@@ -38,20 +25,22 @@ export default function Home({ navigation }) {
     }
 
     React.useEffect(() => {
-        getValueFor('uid').
-            then((uid) => {
-                setUid(uid);
-                getProfile(uid);
-            });
-      
-        
+        const getUid = async () => {
+            const uid = await AsyncStorage.getItem('uid');
+            if (!uid) {
+                navigation.navigate('Login');
+            }
+            setUid(uid);
+            getProfile(uid);
+        }
+        getUid();
     }, []);
 
     return (
         <View style={styles.container}>
             <Text>Home</Text>
             <Text>{uid}</Text>
-            <Text>Yo goofy name is {profile._data.displayName}</Text>
+            <Text>{profile.name}</Text>
         </View>
     )
 }
