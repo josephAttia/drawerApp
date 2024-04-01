@@ -1,15 +1,18 @@
-import * as React from 'react'; 
-import {View, Text} from 'react-native'; 
+import * as React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import Layout from './Layout';
 
-export default function SettingsScreen({navigation}){
-    return(
-        <View style={styles.screenBasic}>
-            <Text 
-                onPress={() => navigation.navigate('Home')}
-                style = {styles.alerts}>Settings Screen</Text>
-        </View>
+export default function HomeScreen() {
+    return (
+        <Layout>
+            <View style={styles.content}>
+                <Text style={styles.alerts}>Settings Screen</Text>
+            </View>
+        </Layout>
     );
-} 
+}
+
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
