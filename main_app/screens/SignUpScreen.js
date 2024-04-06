@@ -22,8 +22,15 @@ export default function SignUpScreen({ navigation }) {
     };
 
     // send the data to the server
-    axios.post('https://26de-199-111-212-3.ngrok-free.app/api/register_user', data)
+    axios.post('https://drawerapp.pythonanywhere.com/api/register_user', data)
       .then((response) => {
+        // check if uid is in async storage and delete it before adding the new one
+        AsyncStorage.getItem('uid').then((uid) => {
+          if (uid) {
+            AsyncStorage.removeItem('uid');
+          }
+        });
+  
         AsyncStorage.setItem('uid', response.data.uid);
         navigation.navigate('Home');
       })
@@ -32,7 +39,7 @@ export default function SignUpScreen({ navigation }) {
         setError(error.response.data.error);
         setTimeout(() => {
           setError(null);
-        }, 10000); // Error message disappears after 10 seconds
+        }, 10000); 
       });
   };
 
