@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }) {
     };
 
     // send the data to the server
-    axios.post('https://26de-199-111-212-3.ngrok-free.app/api/login', data)
+    axios.post('https://drawerapp.pythonanywhere.com/api/login', data)
       .then(async (response) => {
         const uid = response.data.uid;
         await AsyncStorage.setItem('uid', uid);
@@ -35,6 +35,11 @@ export default function LoginScreen({ navigation }) {
         }, 5000); // Error message disappears after 10 seconds
       });
   };
+
+  const loginAsJoe = () => {
+    setEmail('bobby@gmail.com');
+    setPassword('Bobby');
+  }
 
   return (
     <View style={styles.container}>
@@ -61,6 +66,9 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity style={styles.signUpButton} onPress={() => navigation.navigate('SignUp')}>
             <Text style={styles.signUpButtonText}>Don't have an account? Sign up</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.signUpButton} onPress={() => loginAsJoe()}>
+            <Text style={styles.signUpButtonText}>Login as Bobby</Text>
           </TouchableOpacity>
         </View>
       </View>
