@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView, Dimensions, Image, Modall, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView, Dimensions, Image} from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Error from '../components/Error';
 import { Feather } from '@expo/vector-icons';
-import Layout from './Layout';
 
 const { width } = Dimensions.get('window');
 
@@ -52,14 +51,6 @@ export default function Home({ navigation }) {
             setDrawers([...drawers, response.data]);
         } catch (error) {
             setError(error.message);
-        }
-    }
-
-    async function getCameraRoll(uid) {
-        try{
-            const response = await axios.post('https://drawerapp.pythonanywhere.com/api/add_drawer',{
-                
-            })
         }
     }
 
@@ -130,7 +121,6 @@ export default function Home({ navigation }) {
     );
     
     return (
-        <Layout>
             <ScrollView>
                     <View style={styles.container}>
                         <Error errorMessage={error} duration={100000} />
@@ -141,7 +131,7 @@ export default function Home({ navigation }) {
                             <Image source={require('./placeholder_image.jpg')} style={styles.drawerImage} />
                             <Text style={styles.text2}>Drawer Name: {drawers[currentIndex]?.drawer_name}</Text>
                             <Text style={styles.text2}>Last Time of Access: </Text>
-                            <TouchableOpacity onPress={() => viewCameraRoll(uid)} style={style.button}> //needs to route to camera roll
+                            <TouchableOpacity onPress={() => navigation.navigate('CameraRoll')} style={styles.button}> 
                                 <Text style={styles.buttonText}>View More </Text> 
                             </TouchableOpacity>
                         </View>
@@ -156,9 +146,9 @@ export default function Home({ navigation }) {
                             <Text style={styles.buttonText}>Add a New Drawer</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.button}>
+                        {/* <TouchableOpacity style={styles.button}>
                             <Text style={styles.buttonText}>Number of Drawers: {Object.keys(drawers).length}</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
 
                         <Text style={styles.drawerHeader}>Drawers</Text>
                         <FlatList
@@ -172,7 +162,6 @@ export default function Home({ navigation }) {
                         />
                     </View>
             </ScrollView>
-        </Layout>
     )
 }
 
