@@ -1,39 +1,70 @@
-import * as React from 'react'; 
-import {View, Text} from 'react-native'; 
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons'; // Import Feather icon set
+import Layout from './Layout';
 
-export default function SettingsScreen({navigation}){
-    return(
-        <View style={styles.screenBasic}>
-            <Text 
-                onPress={() => navigation.navigate('Home')}
-                style = {styles.alerts}>Settings Screen</Text>
+export default function SettingsScreen() {
+    return (
+        <Layout>
+        <View style={styles.container}>
+            <Text style={styles.header}>Settings</Text>
+            <View style={styles.settingOption}>
+                <Feather name="wifi" size={24} color="black" />
+                <Text style={styles.settingText}>Wi-Fi</Text>
+            </View>
+            <View style={styles.settingOption}>
+                <Feather name="bluetooth" size={24} color="black" />
+                <Text style={styles.settingText}>Bluetooth</Text>
+            </View>
+            <View style={styles.settingOption}>
+                <Feather name="settings" size={24} color="black" />
+                <Text style={styles.settingText}>General</Text>
+            </View>
+            <View style={styles.settingOption}>
+                <Feather name="bell" size={24} color="black" />
+                <Text style={styles.settingText}>Notifications</Text>
+            </View>
+            <View style={styles.settingOption}>
+                <Feather name="info" size={24} color="black" />
+                <Text style={styles.settingText}>About</Text>
+            </View>
+            <TouchableOpacity style={styles.logoutButton}>
+                <Text style={styles.logoutText}>Log Out</Text>
+            </TouchableOpacity>
         </View>
+        </Layout>
     );
-} 
+}
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0F172A',
-        position: 'relative', 
+        backgroundColor: '#f0f0f0',
+        padding: 20,
     },
-    backgroundImage: {
-        position: 'absolute',
-        height: '100%',
-        width: '100%',
-    },
-    screenBasic: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    alerts:{
-        fontSize: 26,
+    header: {
+        fontSize: 24,
         fontWeight: 'bold',
+        marginBottom: 20,
     },
-    contentContainer: {
-        flex: 1,
-        justifyContent: 'center',
+    settingOption: {
+        flexDirection: 'row',
         alignItems: 'center',
+        marginBottom: 20,
+    },
+    settingText: {
+        marginLeft: 10,
+        fontSize: 18,
+    },
+    logoutButton: {
+        backgroundColor: '#FF6347',
+        paddingVertical: 10,
         paddingHorizontal: 20,
+        borderRadius: 5,
+        alignSelf: 'flex-start',
+    },
+    logoutText: {
+        color: 'white',
+        fontSize: 18,
     },
 });
