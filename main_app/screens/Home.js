@@ -4,6 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Error from '../components/Error';
 import { Feather } from '@expo/vector-icons';
+import Layout from './Layout';
 
 const { width } = Dimensions.get('window');
 
@@ -126,7 +127,7 @@ export default function Home({ navigation }) {
                         <Error errorMessage={error} duration={100000} />
                         <Text style={styles.textHeader}>Welcome, </Text>
                         <Text style={styles.text}>{profile.name}!</Text>
-                        <Text style={styles.textHeader2}>Latest Drawer Activity</Text>
+                        <Text style={styles.textHeader3}>Latest Drawer Activity:</Text>
                         <View>
                             <Image source={require('./placeholder_image.jpg')} style={styles.drawerImage} />
                             <Text style={styles.text2}>Drawer Name: {drawers[currentIndex]?.drawer_name}</Text>
@@ -139,16 +140,12 @@ export default function Home({ navigation }) {
                             <Text style={styles.buttonText}>Get Drawers</Text>
                         </TouchableOpacity>
 
-                        <Text style={styles.text}>Drawer Retrieval Status: {drawerGetStatus}</Text>
-                        {/* <Text style={styles.text}>Your User ID: {uid}</Text> */}
+                        <Text style={styles.text}>Drawer Retrieval Status:</Text>
+                        <Text style={styles.text}>{drawerGetStatus}</Text>
 
                         <TouchableOpacity onPress={() => addNewDrawer(uid)} style={styles.button}>
                             <Text style={styles.buttonText}>Add a New Drawer</Text>
                         </TouchableOpacity>
-
-                        {/* <TouchableOpacity style={styles.button}>
-                            <Text style={styles.buttonText}>Number of Drawers: {Object.keys(drawers).length}</Text>
-                        </TouchableOpacity> */}
 
                         <Text style={styles.drawerHeader}>Drawers</Text>
                         <FlatList
@@ -160,6 +157,8 @@ export default function Home({ navigation }) {
                             horizontal
                             showsHorizontalScrollIndicator={false}
                         />
+
+                        <Text style={styles.textHeader3}>How to Get Set-Up:</Text>
                     </View>
             </ScrollView>
     )
@@ -168,12 +167,19 @@ export default function Home({ navigation }) {
 const styles = StyleSheet.create({
     textHeader: {
         color: '#FFFFFF',
+        marginTop: 130,
         fontSize: 40,
     },
     textHeader2: {
         color: '#FFFFFF',
         fontSize: 40,
         paddingTop: 30,
+    },
+    textHeader3: {
+        color: '#FFFFFF',
+        fontSize: 30,
+        paddingTop: 60,
+        paddingBottom: 15,
     },
     text: {
         color: '#FFFFFF',
@@ -185,7 +191,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     container: {
-        backgroundColor: '#141E36',
+        backgroundColor: '#0F172A',
         flex: 1,
     },
     drawerHeader: {
@@ -203,7 +209,7 @@ const styles = StyleSheet.create({
     button: {
         backgroundColor: '#87CEEB',
         padding: 10,
-        marginTop: 20,
+        marginTop: 25,
         marginBottom: 20,
         alignItems: 'center',
         borderRadius: 5,

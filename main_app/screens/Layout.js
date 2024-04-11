@@ -32,8 +32,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingHorizontal: 20,
-        paddingBottom: 70, 
+        paddingHorizontal: 10,
     },
     navBar: {
         flexDirection: 'row',
@@ -41,13 +40,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         height: 70,
         backgroundColor: '#2C3E50',
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
     },
     navItem: {
-        flex: 1,
         alignItems: 'center',
     },
     middleButton: {
