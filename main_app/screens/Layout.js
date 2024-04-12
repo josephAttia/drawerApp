@@ -2,9 +2,21 @@ import * as React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function Layout({ children }) {
+export default function Layout({ children}) {
     const navigation = useNavigation();
+
+    const [uid, setUid] = React.useState('');
+
+    React.useEffect(() => {
+        const fetchUid = async () => {
+            const uid = await AsyncStorage.getItem('uid');
+            setUid(uid);
+        };
+        fetchUid();
+    }, []);
+
     return (
         <View style={styles.container}>
             <View style={styles.content}>
@@ -14,7 +26,7 @@ export default function Layout({ children }) {
                 <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.navItem}>
                     <Feather name="home" size={30} color="white" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('CameraRoll')} style={styles.middleButton}>
+                <TouchableOpacity onPress={() => navigation.navigate("AddDrawer", { uid: uid })} style={styles.middleButton}>
                     <Feather name="box" size={30} color="white" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')} style={styles.navItem}>

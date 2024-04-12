@@ -1,6 +1,8 @@
 # Import necessary libraries
 from io import BytesIO
 import json
+import os
+import re
 import uuid
 from flask import Flask, jsonify, request
 import firebase_admin
@@ -12,7 +14,7 @@ from PIL import Image
 import uuid
 import random
 from datetime import datetime
-
+import requests
 
 # Firebase Admin Initialization
 cred = credentials.Certificate("./smartlock-database-43f6a-firebase-adminsdk-5t5y1-20983c7b03.json")
@@ -38,7 +40,19 @@ def convert_image_to_base64(image_path):
         encoded_string = base64.b64encode(image_file.read())
         return encoded_string.decode('utf-8')
     
-
+def download_image_from_url(image_url):
+    response = requests.get(image_url)
+    if response.status_code == 200:
+        # Create a temporary file to save the image
+        with open("temp_image.jpg", "wb") as temp_file:
+            temp_file.write(response.content)
+        
+        base_64 = convert_image_to_base64("temp_image.jpg")
+        os.remove("temp_image.jpg")
+        return base_64
+    else:
+        raise Exception("Failed to download image")
+  
 
 def hash_password(password):
     """Hashes a given password using SHA-256."""
@@ -89,6 +103,9 @@ def check_db_connection():
 # Global variables
 data = {}
 current_user_logged_in = None
+
+
+# print(download_image_from_url('https://firebasestorage.googleapis.com/v0/b/esppractice-17e5a.appspot.com/o/data%2Fphoto_6.jpg?alt=media&token=0ed0928a-7665-41cf-a38c-2e261a9c19e9'))
 
 def generate_random_drawer():
     # Generate a random drawer name
@@ -197,10 +214,14 @@ def get_drawers():
 
 @app.route('/api/add_drawer', methods=['POST'])
 def add_drawer():
-    """Add a new drawer for a user."""
-    uid = request.json['params']['uid']
-    print("Adding drawer for user with UID: {0}".format(uid))
+    print("Adding drawer")
     
+    title = request.json['title']
+    description = request.json['description']
+    location = request.json['location']
+    mac_address = request.json['mac_address']
+    uid = request.json['uid']
+
     user_ref = db.reference('users').child(uid)
     user_drawers = user_ref.child('drawers').get()
 
@@ -209,12 +230,68 @@ def add_drawer():
         user_ref.child('drawers').set(default_drawers)
         user_drawers = default_drawers
 
-    drawer_data = generate_random_drawer()
-    user_drawers.update(drawer_data)
+
+    drawer_data = {
+        'title': title,
+        'description': description,
+        'location': location,
+        'mac_address': mac_address,
+        'status': "",
+        'time_opened': "",
+        'armed_status': "",
+        'battery_level': "100",
+        'image': convert_image_to_base64('lollz.jpg'),
+    }
+
+    drawer_name = 'drawer' + str(uuid.uuid4())
+    user_drawers.update({drawer_name: drawer_data})
     user_ref.child('drawers').set(user_drawers)
 
 
-    return jsonify(user_drawers), 200
+    return jsonify({"drawer_name": drawer_name}), 200
+
+@app.route('/api/get_latest_drawer_activity', methods=['GET'])
+def get_latest_drawer_activity():
+
+    uid = request.args.get('uid')
+    user_ref = db.reference('users').child(uid)
+
+    # pick a random drawer
+    drawer_name = list(user_ref.child('drawers').get().keys())
+    drawer_name = drawer_name[1]
+    drawer_logs = user_ref.child('drawers').child(drawer_name).child('logs').get()
+
+    if drawer_logs is None:
+        return jsonify({"error": "No logs found for drawer"}), 200
+    
+    latest_log = list(drawer_logs.keys())[-1]
+    latest_log_image = drawer_logs[latest_log]
+
+    return jsonify({"latest_log": latest_log, "latest_log_image": latest_log_image}), 200
+
+
+@app.route('/api/add_new_drawer_entry', methods=['POST'])
+def add_new_drawer_entry():
+    print("Adding new drawer entry")
+    print(request.data)
+
+    # drawer_name = 'drawer3b4f75b6-1666-4831-99b3-e4e2ee86e256'
+
+    # get the current time 
+    # time_opened = datetime.now().isoformat()
+
+    # # make a sub entry in the drawer titled 'logs' and add the time_opened   
+    # uid = '2ece2b14-ea45-4b3a-b163-2a7035babc0e'
+    # user_ref = db.reference('users').child(uid)
+    # user_ref.child('drawers').child(drawer_name).child('logs').push(time_opened)
+
+    # # under the logs entry, and under the time_opened entry, add the image 
+    # image = convert_image_to_base64('lollz.jpg')
+    # user_ref.child('drawers').child(drawer_name).child('logs').child(time_opened).set(image)
+    # # user_ref.child('drawers').child(drawer_name).child('logs').child(time_opened).set(
+    
+    return jsonify("bombocla"), 200
+    
 
 @app.route('/api/get_drawer_image', methods=['GET'])
 def get_drawer_image():
@@ -252,9 +329,42 @@ def login_user():
 def save_data():
     """Save JSON data to the database."""
     data = request.data
-    data = json.loads(data)
     print(data)
     return data
+
+
+# get the drawer armed status and return it
+@app.route('/api/get_drawer_armed_status', methods=['GET'])
+def get_drawer_armed_status():
+    """Get the armed status of a drawer."""
+    # drawer_name = request.args.get('drawer_id')
+    # uid = request.args.get('uid')
+
+    # user_ref = db.reference('users').child(uid)
+    # armed_status = user_ref.child('drawers').child(drawer_name).child('armed_status').get()
+
+
+    return jsonify({"armed_status": 1}), 200
+    # if armed then return 1 else 0
+    # if armed_status == 1:
+    #     return jsonify({"armed_status": 1}), 200
+    # else:
+    #     return jsonify({"armed_status": 0}), 200
+    
+
+
+# get the drawer status and set it 
+@app.route('/api/set_drawer_armed_status', methods=['POST'])
+def set_drawer_armed_status():
+    """Set the armed status of a drawer."""
+    drawer_name = request.json['drawer_id']
+    uid = request.json['uid']
+    armed_status = request.json['armed_status']
+
+    user_ref = db.reference('users').child(uid)
+    user_ref.child('drawers').child(drawer_name).child('armed_status').set(armed_status)
+
+    return jsonify({"armed_status": armed_status}), 200
 
 
 @app.route('/api/get_data', methods=['GET'])

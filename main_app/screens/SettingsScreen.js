@@ -2,8 +2,18 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons'; // Import Feather icon set
 import Layout from './Layout';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+
 
 export default function SettingsScreen() {
+    const navigation = useNavigation();
+
+    const logout_user = async () => {
+        await AsyncStorage.removeItem('uid');
+        navigation.navigate('Login');
+    };
+    
     return (
         <Layout>
         <View style={styles.container}>
@@ -28,7 +38,7 @@ export default function SettingsScreen() {
                 <Feather name="info" size={24} color="black" />
                 <Text style={styles.settingText}>About</Text>
             </View>
-            <TouchableOpacity style={styles.logoutButton}>
+            <TouchableOpacity style={styles.logoutButton} onPress={() => logout_user()}>
                 <Text style={styles.logoutText}>Log Out</Text>
             </TouchableOpacity>
         </View>

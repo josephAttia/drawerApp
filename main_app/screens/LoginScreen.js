@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ navigation }) {
 
-
+  
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -40,6 +40,17 @@ export default function LoginScreen({ navigation }) {
     setEmail('bobby@gmail.com');
     setPassword('Bobby');
   }
+
+  React.useEffect(() => {
+    const fetchUid = async () => {
+      const uid = await AsyncStorage.getItem('uid');
+      if (uid) {
+        navigation.navigate('Home');
+      }
+    };
+
+    fetchUid();
+  }, []);
 
   return (
     <View style={styles.container}>
