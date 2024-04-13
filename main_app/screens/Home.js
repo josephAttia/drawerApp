@@ -161,7 +161,7 @@ export default function Home({ navigation }) {
                     <Text style={styles.welcome_text}>Welcome, </Text>
                     <Text style={styles.profile_name}>{profile.name}!</Text>
                     <Text style={styles.textHeader3}>Latest Drawer Activity:</Text>
-                    <View style={styles.latest_activity_section}>
+                    <View style={styles.home_screen_button}>
                         {thereIsDrawerActivity ? (
                             <>
                                 <Text style={styles.text2}>Drawer Name: {latestDrawerActivity?.drawer_name}</Text>
@@ -201,8 +201,10 @@ export default function Home({ navigation }) {
                         horizontal
                         showsHorizontalScrollIndicator={false}
                     />
+                    <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')} style={styles.home_screen_button}>
+                        <Text style={styles.buttonText}>Setup Instructions</Text>
+                    </TouchableOpacity>
                 </View>
-
             </ScrollView>
         </Layout>
     )
@@ -282,15 +284,6 @@ const styles = StyleSheet.create({
         fontFamily: 'Lato_Regular',
     },
 
-    button: {
-        backgroundColor: '#87CEEB',
-        padding: 15, /* Increasing padding for better touch experience */
-        marginTop: 25,
-        marginBottom: 20,
-        alignItems: 'center',
-        borderRadius: 25, /* Making the button more rounded */
-    },
-
     buttonText: {
         color: '#FFFFFF',
         fontSize: 18,
@@ -310,7 +303,7 @@ const styles = StyleSheet.create({
         marginTop: 15, /* Slightly reducing the margin */
     },
 
-    latest_activity_section: {
+    home_screen_button: {
         backgroundColor: '#2C3E50',
         width: '100%',
         maxWidth: 600, /* Limiting the maximum width */
