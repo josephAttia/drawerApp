@@ -43,10 +43,6 @@ export default function Home({ navigation }) {
         }
     }
 
-    async function get_uid() {
-        const storedUid = await AsyncStorage.getItem('uid');
-        return storedUid;
-    }
 
     // async function addNewDrawer(uid) {//added
     //     try {
@@ -122,9 +118,8 @@ export default function Home({ navigation }) {
         }
     };
 
-    const renderDrawerInfo = ({ item }) => ( //fixed
-        console.log(item),
-        <TouchableOpacity onPress={() => navigation.navigate('DrawerDetails', { uid: get_uid(), drawerID: item.id })}>
+    const renderDrawerInfo = ({ item }) => ( //fixe
+        <TouchableOpacity onPress={() => navigation.navigate('DrawerDetails', { uid: uid, drawerID: item.id })}>
             <View style={styles.drawerItem}>
                 <View style={styles.statusContainer}>
                     <Feather name="box" size={20} color="#FFFFFF" style={{ marginRight: 5 }} />

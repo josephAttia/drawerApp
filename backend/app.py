@@ -41,6 +41,7 @@ def convert_image_to_base64(image_path):
         return encoded_string.decode('utf-8')
     
 def download_image_from_url(image_url):
+    print("Downloading image from URL: {0}".format(image_url))
     response = requests.get(image_url)
     if response.status_code == 200:
         # Create a temporary file to save the image
@@ -236,17 +237,25 @@ def add_drawer():
         'description': description,
         'location': location,
         'mac_address': mac_address,
-        'status': "",
-        'time_opened': "",
-        'armed_status': "",
         'battery_level': "100",
-        'image': convert_image_to_base64('lollz.jpg'),
+        'armed_status': "",
+        'unauthorized_access': "",
+        'logs': {},
     }
 
     drawer_name = 'drawer' + str(uuid.uuid4())
     user_drawers.update({drawer_name: drawer_data})
     user_ref.child('drawers').set(user_drawers)
 
+    # add dummy logs
+    time_opened = datetime.now().isoformat()
+    image = convert_image_to_base64('lollz.jpg')
+    user_ref.child('drawers').child(drawer_name).child('logs').push(time_opened)
+    user_ref.child('drawers').child(drawer_name).child('logs').child(time_opened).set(image)
+
+    # make a sub entry outside of the users directory titled 'drawers' and add the mac_address
+    user_ref = db.reference('drawers')
+    user_ref.child(mac_address).set(uid)
 
     return jsonify({"drawer_name": drawer_name}), 200
 
@@ -325,13 +334,70 @@ def login_user():
     return jsonify(user), 200
 
 
-@app.route('/api/set_data', methods=['POST'])
+@app.route('/api/add_new_activity', methods=['POST'])
 def save_data():
     """Save JSON data to the database."""
     data = request.data
-    print(data)
-    return data
+    # working with data {"MACAddress":"A0:A3:B3:97:8B:A0","time":"2024-04-13 12:26:20","data":"OPEN","url":"https://firebasestorage.googleapis.com/v0/b/esppractice-17e5a.appspot.com/o/data%2Fphoto_1.jpg?alt=media&token=ea434b2e-680b-456d-a63f-d8604184b354"}'
+    
+    mac_address = request.json['MACAddress']    
+    time = request.json['time']
+    open_status = request.json['data']
+    url = request.json['url']
 
+    # find the drawer with the mac address
+    user_ref = db.reference('drawers').child(mac_address).get()
+    if user_ref is None:
+        return jsonify({"error": "Drawer not found"}), 400
+
+    # get the uid of the user
+    uid = user_ref
+
+    # loop through the drawers of the user and find the drawer with the mac address
+    user_ref = db.reference('users').child(uid)
+    user_drawers = user_ref.child('drawers').get()
+    drawer_name = None
+
+    for drawer in user_drawers:
+        # if the drawer's name is drawer1 then skip it
+        if drawer == 'drawer1':
+            continue
+        if user_drawers[drawer]['mac_address'] == mac_address:
+            drawer_name = drawer
+            break
+
+    # make a sub entry in the drawer titled 'logs' and add the time_opened
+    random_log = "log" + str(uuid.uuid4()) 
+    
+    image = download_image_from_url(url)
+
+    data = {
+        'time': time,
+        'image': image
+    }
+    
+    user_ref.child('drawers').child(drawer_name).child('logs').child(random_log).set(data)
+
+    return jsonify({"message": "Data saved successfully"}), 200
+
+
+@app.route('/api/get_drawer_logs', methods=['GET'])
+def get_drawer_logs():
+    """Retrieve logs of a drawer."""
+    drawer_name = request.args.get('drawer_id')
+    uid = request.args.get('uid')
+
+    user_ref = db.reference('users').child(uid)
+    drawer_logs = user_ref.child('drawers').child(drawer_name).child('logs')
+
+    # loop through the logs and get the time and image
+    drawer_logs = drawer_logs.get()
+    if drawer_logs is None:
+        return jsonify({"error": "No logs found for drawer"}), 200
+    
+    print(drawer_logs)
+
+    return jsonify(drawer_logs), 200
 
 # get the drawer armed status and return it
 @app.route('/api/get_drawer_armed_status', methods=['GET'])
