@@ -335,7 +335,23 @@ def get_latest_drawer_activity():
 
     return jsonify(latest_log), 200
 
+@app.route('/api/toggle_armed', methods=['POST'])
+def toggle_armed():
+    """Toggle the armed status of a drawer."""
+    drawer_name = request.json.get('drawer_id')
+    uid = request.json.get('uid')
 
+    user_ref = db.reference('users').child(uid)
+    drawer_ref = user_ref.child('drawers').child(drawer_name)
+
+    # Get the current armed status
+    armed_status = drawer_ref.child('armed').get()
+
+    # Toggle the armed status
+    new_armed_status = not armed_status
+    drawer_ref.update({'armed': new_armed_status})
+
+    return jsonify({"armed": new_armed_status}), 200
 
 @app.route('/api/get_drawer_image', methods=['GET'])
 def get_drawer_image():

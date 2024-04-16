@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Image, StyleSheet, Dimensions, Platform, TouchableOpacity } from 'react-native';
 import axios from 'axios';
+import Layout from './Layout';
 
 const windowWidth = Dimensions.get('window').width;
 const photoHeight = windowWidth * 0.28; // Smaller percentage for better fit
@@ -22,19 +23,19 @@ export default function CameraRoll({ route }) {
 
     async function fetchImages(uid, drawerID) {
         try {
-            await axios.get('https://4cc1-199-111-212-59.ngrok-free.app/api/get_drawer_logs', {
+            await axios.get('https://8a79-199-111-225-106.ngrok-free.app/api/get_drawer_logs', {
                 params: { uid: uid, drawer_id: drawerID }
             }).then((response) => {
                 const logs = response.data;
-    
+
                 let fetchedLogs = Object.keys(logs).map(key => ({
                     id: key,
                     ...logs[key]
                 }));
-    
+
                 // Sort fetchedLogs by time in ascending order
                 fetchedLogs.sort((a, b) => new Date(b.time) - new Date(a.time));
-    
+
                 setLogs(fetchedLogs);
             });
         }
@@ -44,24 +45,26 @@ export default function CameraRoll({ route }) {
     };
     return (
         <>
-        <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginTop: 20 }}>Camera Roll</Text>
-        {/* write a refresh button */}
-        <TouchableOpacity onPress={() => fetchImages(uid, drawerID)} style={{ alignSelf: 'center', marginTop: 10 }}>
-            <Text style={{ color: '#007BFF', fontSize: 16 }}>Refresh</Text>
-        </TouchableOpacity>
+            <Layout>
+                <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginTop: 20 }}>Camera Roll</Text>
+                {/* write a refresh button */}
+                <TouchableOpacity onPress={() => fetchImages(uid, drawerID)} style={{ alignSelf: 'center', marginTop: 10 }}>
+                    <Text style={{ color: '#007BFF', fontSize: 16 }}>Refresh</Text>
+                </TouchableOpacity>
 
-        <ScrollView contentContainerStyle={styles.contentContainer}>
-            {current_logs.length === 0 && <Text style={styles.placeholderText}>No images found</Text>}
-            {current_logs.map((log, index) => (
-                <View key={index} style={styles.logContainer}>
-                    <Image
-                        source={{ uri: `data:image/png;base64,${log.image}` }}
-                        style={styles.image}
-                    />
-                    <Text style={styles.timestamp}>{convert_time_to_readable(log.time)}</Text>
-                </View>
-            ))}
-        </ScrollView>
+                <ScrollView contentContainerStyle={styles.contentContainer}>
+                    {current_logs.length === 0 && <Text style={styles.placeholderText}>No images found</Text>}
+                    {current_logs.map((log, index) => (
+                        <View key={index} style={styles.logContainer}>
+                            <Image
+                                source={{ uri: `data:image/png;base64,${log.image}` }}
+                                style={styles.image}
+                            />
+                            <Text style={styles.timestamp}>{convert_time_to_readable(log.time)}</Text>
+                        </View>
+                    ))}
+                </ScrollView>
+            </Layout>
         </>
     );
 }
@@ -70,8 +73,9 @@ const styles = StyleSheet.create({
     contentContainer: {
         marginTop: 10,
         alignItems: 'flex-start',
-        backgroundColor: '#F0  bF2F5', // Light grey background for a cleaner look
+        backgroundColor: '#fff', // Light grey background for a cleaner look
         paddingTop: 10,
+
     },
     logContainer: {
         flexDirection: 'row',

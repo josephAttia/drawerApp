@@ -40,11 +40,10 @@ export default function Layout({ children}) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0F172A',
     },
     content: {
         flex: 1,
-        paddingHorizontal: 10,
+      
     },
     navBar: {
         flexDirection: 'row',

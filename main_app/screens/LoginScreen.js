@@ -78,9 +78,9 @@ export default function LoginScreen({ navigation }) {
           <TouchableOpacity style={styles.signUpButton} onPress={() => navigation.navigate('SignUp')}>
             <Text style={styles.signUpButtonText}>Don't have an account? Sign up</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.signUpButton} onPress={() => loginAsJoe()}>
-            <Text style={styles.signUpButtonText}>Login as Bobby</Text>
-          </TouchableOpacity>
+          {/* <TouchableOpacity style={styles.signUpButton} onPress={() => loginAsJoe()}>
+            <Text style={styles.signUpButtonText}>Login as Borbby</Text>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>

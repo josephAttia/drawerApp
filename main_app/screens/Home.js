@@ -24,6 +24,9 @@ export default function Home({ navigation }) {
             const response = await axios.get('https://drawerapp.pythonanywhere.com/api/get_profile', {
                 params: { uid: uid }
             });
+            if (response.data === null){
+                getProfile(uid);
+            }
             setProfile(response.data);
         } catch (error) {
             console.log('Error message:', error.message);
@@ -36,6 +39,9 @@ export default function Home({ navigation }) {
             const response = await axios.get('https://drawerapp.pythonanywhere.com/api/get_drawers', {
                 params: { uid: uid }
             });
+            if (response.data === null){
+                getDrawers(uid);
+            }
             setDrawerGetStatus('Drawers retrieved');
             setDrawers(response.data);
         } catch (error) {
@@ -62,7 +68,7 @@ export default function Home({ navigation }) {
 
     async function get_latest_drawer_activity(uid) {
         try {
-            const response = await axios.get('https://febe-199-111-212-147.ngrok-free.app/api/get_latest_drawer_activity', {
+            const response = await axios.get('https://8a79-199-111-225-106.ngrok-free.app/api/get_latest_drawer_activity', {
                 params: { uid: uid }
             });
             if (response.data) {
@@ -82,6 +88,7 @@ export default function Home({ navigation }) {
             }
             else {
                 // try again
+                console.log("No data found, trying again");
                 get_latest_drawer_activity(uid);
 
             }
@@ -135,7 +142,7 @@ export default function Home({ navigation }) {
             <View style={styles.drawerItem}>
                 <View style={styles.statusContainer}>
                     <Feather name="box" size={20} color="#000" style={{ marginRight: 5 }} />
-                    <Text style={styles.text2}>Drawer Name: {item.title}</Text>
+                    <Text style={styles.text10}>Drawer Name: {item.title}</Text>
                 </View>
                 <View style={styles.statusContainer}>
                     <Feather name="battery" size={20} color={getBatteryColor(item.battery_level)} style={{ marginRight: 5 }} />
@@ -145,16 +152,41 @@ export default function Home({ navigation }) {
                     <Feather name="info" size={20} color="#FFFFFF" style={{ marginRight: 5 }} />
                     <Text style={styles.text2}>Status: {item.status}</Text>
                 </View> */}
-                <View style={styles.statusContainer}>
-                    <Feather name="clock" size={20} color="#FFFFFF" style={{ marginRight: 5 }} />
-                    <Text style={styles.text2}>Time Opened: {item.time_opened}</Text>
-                </View>
+             
                 <View style={styles.statusContainer}>
                     <Feather name="alert-triangle" size={20} color={item.unauthorized_access === 1 ? 'red' : 'green'} style={{ marginRight: 5 }} />
                     <Text style={[styles.text2, { color: item.unauthorized_access === 1 ? 'red' : 'green' }]}>
                         {item.unauthorized_access === 1 ? 'Unauthorized Access' : 'Safe'}
                     </Text>
                 </View>
+
+                {/* add a armed status indicator*/}
+                <View style={styles.statusContainer}>
+                    <Feather name="shield" size={20} color={item.armed ? 'green' : 'red'} style={{ marginRight: 5 }} />
+                    <Text style={[styles.text2, { color: item.armed ? 'green' : 'red' }]}>
+                        {item.armed ? 'Armed' : 'Disarmed'}
+                    </Text>
+                </View>
+                
+
+                {/* add a button to toggle armed / disarmed */}
+                <TouchableOpacity  onPress={() => {
+                    axios.post('https://8a79-199-111-225-106.ngrok-free.app/api/toggle_armed', {
+                        uid: uid,
+                        drawer_id: item.id,
+                    }).then((response) => {
+                        const updatedDrawers = { ...drawers };
+                        updatedDrawers[item.id].armed = response.data.armed;
+                        setDrawers(updatedDrawers);
+                    }).catch((error) => {
+                        console.error('Failed to toggle armed status', error);
+                    });
+                }}>
+                    <Text style={styles.buttonText}>{item.armed ? 'Disarm' : 'Arm'}</Text>
+                </TouchableOpacity>
+
+
+
             </View>
         </TouchableOpacity>
     );
@@ -172,14 +204,14 @@ export default function Home({ navigation }) {
                         {thereIsDrawerActivity ? (
                             <>
 
-                                <Image source={latestDrawerActivityImage ? { uri: latestDrawerActivityImage } : place_holder_image} style={styles.drawerImage} />
+                                <Image source={{uri: latestDrawerActivityImage}}  style={styles.drawerImage} />
                                 <Text style={styles.text2}>Drawer Name:</Text>
                                 <Text style={styles.text4}>{latestDrawerActivity?.title}</Text>
 
                                 <Text style={styles.text2}>Last Time of Access:</Text>
                                 <Text style={styles.text4}>{latestDrawerActivity?.time}</Text>
 
-                                <TouchableOpacity onPress={() => navigation.navigate('CameraRoll')} style={styles.button}>
+                                <TouchableOpacity onPress={() =>navigation.navigate('CameraRoll', { uid: uid, drawerID: item.id })} style={styles.button}>
                                     <Text style={styles.buttonText}>View More </Text>
                                 </TouchableOpacity>
                             </>
@@ -238,6 +270,7 @@ const styles = StyleSheet.create({
         fontSize: 40,
         fontFamily: 'Lato_Regular', /* Adding a common font family */
         textAlign: 'center', /* Centering the text */
+
     },
 
     profile_name: {
@@ -245,7 +278,7 @@ const styles = StyleSheet.create({
         fontSize: 30,
         fontFamily: 'Lato_Regular',
         textAlign: 'center',
-        marginBottom: 20, /* Adding some space below */
+        marginBottom: -10, /* Adding some space below */
     },
 
     textHeader2: {
@@ -281,6 +314,15 @@ const styles = StyleSheet.create({
         textAlign: 'left',
     },
 
+    text10: {
+        color: '#000',
+        fontSize: 20,
+        justifyContent: 'center',
+        fontFamily: 'Lato_Regular',
+        textAlign: 'left',
+    },
+
+
     
     text4: {
         color: '#10F0E6',
@@ -288,7 +330,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         fontFamily: 'Lato_Regular',
         textAlign: 'left',
-        marginBottom: 20,
     },
 
     container: {
@@ -311,12 +352,10 @@ const styles = StyleSheet.create({
     },
 
     drawerItem: {
-        backgroundColor: '#FFFFFF', // White card background
+        backgroundColor: '#FFF', // White card background
         borderRadius: 10, // Rounded corners for cards
         marginVertical: 10, // Space between cards
-        padding: 15, // Inner spacing
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        padding: 15, // Inner spacin
         fontFamily: 'Lato_Regular',
     },
 

@@ -63,10 +63,6 @@ export default function SettingsScreen() {
             <TouchableOpacity style={styles.logoutButton} onPress={() => logout_user()}>
                 <Text style={styles.logoutText}>Log Out</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.logoutButton} onPress={() => logout_user()}>
-                <Text style={styles.logoutText}>Log Out</Text>
-            </TouchableOpacity>
         </View>
     );
 }
