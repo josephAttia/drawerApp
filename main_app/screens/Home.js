@@ -16,6 +16,7 @@ export default function Home({ navigation }) {
     const [drawerGetStatus, setDrawerGetStatus] = useState('');
     const [error, setError] = useState(null);
     const [latestDrawerActivity, setLatestDrawerActivity] = useState({});
+    const [latestDrawerActivityImage, setLatestDrawerActivityImage] = useState(null);
     const [thereIsDrawerActivity, setThereIsDrawerActivity] = useState(false);
 
     async function getProfile(uid) {
@@ -61,17 +62,28 @@ export default function Home({ navigation }) {
 
     async function get_latest_drawer_activity(uid) {
         try {
-            const response = await axios.get('https://a12a-199-111-225-101.ngrok-free.app/api/get_latest_drawer_activity', {
+            const response = await axios.get('https://febe-199-111-212-147.ngrok-free.app/api/get_latest_drawer_activity', {
                 params: { uid: uid }
             });
             if (response.data) {
-                if (response.data.drawer_name === null) {
-                    setThereIsDrawerActivity(false);
+                data = await response.data;
+                if (data.time) {
+                    data.time = new Date(data.time).toLocaleString();
                 }
-                else {
-                    setLatestDrawerActivity(response.data);
-                    // setThereIsDrawerActivity(true);
+                if (data.image) {
+                    console.log("We set the image");
+                    setLatestDrawerActivityImage(`data:image/png;base64,${data.image}`);
+
                 }
+
+                setLatestDrawerActivity(data);
+                setThereIsDrawerActivity(true);
+
+            }
+            else {
+                // try again
+                get_latest_drawer_activity(uid);
+
             }
         } catch (error) {
             setError(error.message);
@@ -119,10 +131,10 @@ export default function Home({ navigation }) {
     };
 
     const renderDrawerInfo = ({ item }) => ( //fixe
-        <TouchableOpacity onPress={() => navigation.navigate('DrawerDetails', { uid: uid, drawerID: item.id })}>
+        <TouchableOpacity onPress={() => navigation.navigate('CameraRoll', { uid: uid, drawerID: item.id })}>
             <View style={styles.drawerItem}>
                 <View style={styles.statusContainer}>
-                    <Feather name="box" size={20} color="#FFFFFF" style={{ marginRight: 5 }} />
+                    <Feather name="box" size={20} color="#000" style={{ marginRight: 5 }} />
                     <Text style={styles.text2}>Drawer Name: {item.title}</Text>
                 </View>
                 <View style={styles.statusContainer}>
@@ -156,24 +168,26 @@ export default function Home({ navigation }) {
                     <Text style={styles.welcome_text}>Welcome, </Text>
                     <Text style={styles.profile_name}>{profile.name}!</Text>
                     <Text style={styles.textHeader3}>Latest Drawer Activity:</Text>
-                    <View style={styles.latest_activity_section}>
+                    <View style={styles.home_screen_button}>
                         {thereIsDrawerActivity ? (
                             <>
-                                <Text style={styles.text2}>Drawer Name: {latestDrawerActivity?.drawer_name}</Text>
-                                <Text style={styles.text2}>Last Time of Access: {latestDrawerActivity?.time_opened}</Text>
+
+                                <Image source={latestDrawerActivityImage ? { uri: latestDrawerActivityImage } : place_holder_image} style={styles.drawerImage} />
+                                <Text style={styles.text2}>Drawer Name:</Text>
+                                <Text style={styles.text4}>{latestDrawerActivity?.title}</Text>
+
+                                <Text style={styles.text2}>Last Time of Access:</Text>
+                                <Text style={styles.text4}>{latestDrawerActivity?.time}</Text>
+
                                 <TouchableOpacity onPress={() => navigation.navigate('CameraRoll')} style={styles.button}>
                                     <Text style={styles.buttonText}>View More </Text>
                                 </TouchableOpacity>
                             </>
                         ) : (
-                            <Text style={styles.text2}>No recent drawer activity</Text>
+                            <Text style={styles.text2}>No drawer activity found</Text>
                         )}
-                        {/* <Image source={place_holder_image} style={styles.drawerImage} />
-                        <Text style={styles.text2}>Drawer Name: {drawers[currentIndex]?.drawer_name}</Text>
-                        <Text style={styles.text2}>Last Time of Access: </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('CameraRoll')} style={styles.button}>
-                            <Text style={styles.buttonText}>View More </Text>
-                        </TouchableOpacity> */}
+
+
                     </View>
                     {/* <TouchableOpacity onPress={() => getDrawers(uid)} style={styles.button}>
                         <Text style={styles.buttonText}>Get Drawers</Text>
@@ -196,6 +210,10 @@ export default function Home({ navigation }) {
                         horizontal
                         showsHorizontalScrollIndicator={false}
                     />
+
+                    <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')} style={styles.home_screen_button}>
+                        <Text style={styles.buttonText}>Setup Instructions</Text>
+                    </TouchableOpacity>
                 </View>
 
             </ScrollView>
@@ -204,6 +222,16 @@ export default function Home({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+    image: {
+        width: 200, // specify the width
+        height: 200, // specify the height
+        borderRadius: 15, // round the corners
+        marginBottom: 20, // add some space below
+        // center this horizontally
+        marginLeft: 'auto',
+        marginRight: 'auto',
+
+    },
     welcome_text: {
         color: '#FFFFFF',
         marginTop: 70,
@@ -213,7 +241,7 @@ const styles = StyleSheet.create({
     },
 
     profile_name: {
-        color: '#FFFFFF',
+        color: '#FFDC2A',
         fontSize: 30,
         fontFamily: 'Lato_Regular',
         textAlign: 'center',
@@ -229,7 +257,7 @@ const styles = StyleSheet.create({
     },
 
     textHeader3: {
-        color: '#FFFFFF',
+        color: '#B4B6B0',
         fontSize: 20,
         paddingTop: 60,
         paddingBottom: 15,
@@ -250,12 +278,24 @@ const styles = StyleSheet.create({
         fontSize: 20,
         justifyContent: 'center',
         fontFamily: 'Lato_Regular',
-        textAlign: 'center',
+        textAlign: 'left',
+    },
+
+    
+    text4: {
+        color: '#10F0E6',
+        fontSize: 20,
+        justifyContent: 'center',
+        fontFamily: 'Lato_Regular',
+        textAlign: 'left',
+        marginBottom: 20,
     },
 
     container: {
-        backgroundColor: '#0F172A',
+        backgroundColor: '#1E1F3E',
         flex: 1,
+        padding: 0,
+
         // alignItems: 'center', /* Centering the content vertically */
         // justifyContent: 'center', /* Centering the content horizontally */
     },
@@ -271,32 +311,37 @@ const styles = StyleSheet.create({
     },
 
     drawerItem: {
-        padding: 10,
+        backgroundColor: '#FFFFFF', // White card background
+        borderRadius: 10, // Rounded corners for cards
+        marginVertical: 10, // Space between cards
+        padding: 15, // Inner spacing
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
         fontFamily: 'Lato_Regular',
     },
 
-    button: {
-        backgroundColor: '#87CEEB',
-        padding: 15, /* Increasing padding for better touch experience */
-        marginTop: 25,
-        marginBottom: 20,
-        alignItems: 'center',
-        borderRadius: 25, /* Making the button more rounded */
-    },
+
 
     buttonText: {
-        color: '#FFFFFF',
+        color: '#fff',
         fontSize: 18,
         fontFamily: 'Lato_Regular',
+        backgroundColor: '#2A2A42',
+        padding: 10,
+        borderRadius: 10,
+        textAlign: 'center',
+        marginTop: 20,
+
     },
 
     drawerImage: {
-        width: '100%', /* Making the image responsive */
-        height: 'auto',
-        maxWidth: 300, /* Limiting the maximum width */
-        marginVertical: 20, /* Adding vertical margin */
+        width: 200, // specify the width
+        height: 200, // specify the height
+        borderRadius: 15, // round the corners
+        marginBottom: 20, // add some space below
+        // center this horizontally
+        marginLeft: 'auto',
+        marginRight: 'auto',
     },
 
     statusContainer: {
@@ -305,8 +350,8 @@ const styles = StyleSheet.create({
         marginTop: 15, /* Slightly reducing the margin */
     },
 
-    latest_activity_section: {
-        backgroundColor: '#2C3E50',
+    home_screen_button: {
+        backgroundColor: '#13132D',
         width: '100%',
         maxWidth: 600, /* Limiting the maximum width */
         padding: 20, /* Increasing padding */

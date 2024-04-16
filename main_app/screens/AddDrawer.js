@@ -57,7 +57,7 @@ const AddDrawer = ({ route }) => {
             mac_address: macAddress,
         };
 
-        axios.post('https://ead0-199-111-212-109.ngrok-free.app/api/add_drawer', data)
+        axios.post('https://drawerapp.pythonanywhere.com/api/add_drawer', data)
             .then(() => {
                 setTitle('');
                 setDescription('');

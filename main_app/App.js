@@ -12,6 +12,7 @@ import * as Font from 'expo-font';
 import { loadFonts } from './fonts';
 import { useState } from 'react';
 import SettingsScreen from './screens/SettingsScreen';
+import CameraRoll from './screens/CameraRoll';
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -46,7 +47,7 @@ function App() {
         <Stack.Screen name="DrawerDetails" component={DrawerDetails} />
         <Stack.Screen name="AddDrawer" component={AddDrawer} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
-
+        <Stack.Screen name="CameraRoll" component={CameraRoll} />
       </Stack.Navigator>
 
     </NavigationContainer>

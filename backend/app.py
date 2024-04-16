@@ -15,6 +15,8 @@ import uuid
 import random
 from datetime import datetime
 import requests
+from flask_mail import Mail, Message
+from operator import itemgetter
 
 # Firebase Admin Initialization
 cred = credentials.Certificate("./smartlock-database-43f6a-firebase-adminsdk-5t5y1-20983c7b03.json")
@@ -27,6 +29,25 @@ firebase_admin.initialize_app(cred, {
 # Create Flask app
 app = Flask(__name__)
 CORS(app) 
+
+app.config['MAIL_SERVER']='smtp.mailgun.org'
+app.config['MAIL_PORT'] = 587 
+app.config['MAIL_USERNAME'] = 'postmaster@sandbox33440bbc07b54f77a6e95a3444ceccfb.mailgun.org'
+app.config['MAIL_PASSWORD'] = '0dd53eafdcec22f64839170d6db0d503-19806d14-45152ef5'
+
+mail = Mail(app)
+
+app.app_context().push()
+
+# def send_email():
+#     msg = Message('Hello', sender = 'isense@gmail.com', recipients = ['71papahijo@gmail.com'])
+#     msg.subject = "🚨 Unauthorized access detected in your drawer!🚨 | iSense"
+#     msg.body = "Hello, \n\nWe have detected unauthorized access in your drawer. Please check the iSense app for more details. \n\nBest, \niSense Team"
+#     mail.send(msg)
+#     print("Sent")
+#     return "Sent"
+
+# send_email()
 
 
 # Utility functions
@@ -259,48 +280,62 @@ def add_drawer():
 
     return jsonify({"drawer_name": drawer_name}), 200
 
-@app.route('/api/get_latest_drawer_activity', methods=['GET'])
-def get_latest_drawer_activity():
-
+@app.route('/api/get_all_drawer_logs', methods=['GET'])
+def get_all_drawer_logs():
+    """Retrieve all logs of a drawer."""
     uid = request.args.get('uid')
     user_ref = db.reference('users').child(uid)
+    user_drawers = user_ref.child('drawers').get()
+    drawer_logs = {}
 
-    # pick a random drawer
-    drawer_name = list(user_ref.child('drawers').get().keys())
-    drawer_name = drawer_name[1]
-    drawer_logs = user_ref.child('drawers').child(drawer_name).child('logs').get()
+    for drawer in user_drawers:
+        if drawer == 'drawer1':
+            continue
+        logs = user_ref.child('drawers').child(drawer).child('logs').get()
+        if logs is not None:
+            drawer_logs[drawer] = logs
 
+    return jsonify(drawer_logs), 200
+
+
+
+@app.route('/api/get_latest_drawer_activity', methods=['GET'])
+def get_latest_drawer_activity():
+    """Retrieve the latest activity of a drawer."""
+    uid = request.args.get('uid')
+    print("UID: {0}".format(uid))
+    user_ref = db.reference('users').child(uid)
+    drawers_ref = user_ref.child('drawers')
+
+    # Get all the drawers and their IDs
+    drawers = drawers_ref.get()
+    if drawers is None:
+        return jsonify({"error": "No drawers found"}), 200
+
+    drawer_ids = list(drawers.keys())
+
+    # Select a random drawer ID
+    drawer_name = random.choice(drawer_ids)
+
+    drawer_logs_ref = user_ref.child('drawers').child(drawer_name).child('logs')
+    drawer_title = user_ref.child('drawers').child(drawer_name).child('title').get()
+
+    # Get the logs and convert them to a list of dictionaries
+    drawer_logs = drawer_logs_ref.get()
     if drawer_logs is None:
         return jsonify({"error": "No logs found for drawer"}), 200
-    
-    latest_log = list(drawer_logs.keys())[-1]
-    latest_log_image = drawer_logs[latest_log]
 
-    return jsonify({"latest_log": latest_log, "latest_log_image": latest_log_image}), 200
+    drawer_logs_list = [{"id": id, **log} for id, log in drawer_logs.items()]
+
+    # Sort the logs by time in descending order and get the latest one
+    latest_log = sorted(drawer_logs_list, key=itemgetter('time'), reverse=True)[0]
+
+    # Append the title of the drawer to the log
+    latest_log['title'] = drawer_title
+
+    return jsonify(latest_log), 200
 
 
-@app.route('/api/add_new_drawer_entry', methods=['POST'])
-def add_new_drawer_entry():
-    print("Adding new drawer entry")
-    print(request.data)
-
-    # drawer_name = 'drawer3b4f75b6-1666-4831-99b3-e4e2ee86e256'
-
-    # get the current time 
-    # time_opened = datetime.now().isoformat()
-
-    # # make a sub entry in the drawer titled 'logs' and add the time_opened   
-    # uid = '2ece2b14-ea45-4b3a-b163-2a7035babc0e'
-    # user_ref = db.reference('users').child(uid)
-    # user_ref.child('drawers').child(drawer_name).child('logs').push(time_opened)
-
-    # # under the logs entry, and under the time_opened entry, add the image 
-    # image = convert_image_to_base64('lollz.jpg')
-    # user_ref.child('drawers').child(drawer_name).child('logs').child(time_opened).set(image)
-    # # user_ref.child('drawers').child(drawer_name).child('logs').child(time_opened).set(
-    
-    return jsonify("bombocla"), 200
-    
 
 @app.route('/api/get_drawer_image', methods=['GET'])
 def get_drawer_image():
@@ -337,36 +372,34 @@ def login_user():
 @app.route('/api/add_new_activity', methods=['POST'])
 def save_data():
     """Save JSON data to the database."""
-    data = request.data
-    # working with data {"MACAddress":"A0:A3:B3:97:8B:A0","time":"2024-04-13 12:26:20","data":"OPEN","url":"https://firebasestorage.googleapis.com/v0/b/esppractice-17e5a.appspot.com/o/data%2Fphoto_1.jpg?alt=media&token=ea434b2e-680b-456d-a63f-d8604184b354"}'
-    
-    mac_address = request.json['MACAddress']    
-    time = request.json['time']
-    open_status = request.json['data']
-    url = request.json['url']
+    data = request.data.decode('utf-8')  # decode byte string to regular string
+    data_dict = json.loads(data)  # parse JSON string into Python dictionary
 
-    # find the drawer with the mac address
+    mac_address = data_dict['MACAddress']
+    time = data_dict['time']
+    data = data_dict['data']
+    url = data_dict['url']
+
+
+    print("Url is: {0}".format(url))
+
     user_ref = db.reference('drawers').child(mac_address).get()
     if user_ref is None:
         return jsonify({"error": "Drawer not found"}), 400
 
-    # get the uid of the user
     uid = user_ref
 
-    # loop through the drawers of the user and find the drawer with the mac address
     user_ref = db.reference('users').child(uid)
     user_drawers = user_ref.child('drawers').get()
     drawer_name = None
 
     for drawer in user_drawers:
-        # if the drawer's name is drawer1 then skip it
         if drawer == 'drawer1':
             continue
         if user_drawers[drawer]['mac_address'] == mac_address:
             drawer_name = drawer
             break
 
-    # make a sub entry in the drawer titled 'logs' and add the time_opened
     random_log = "log" + str(uuid.uuid4()) 
     
     image = download_image_from_url(url)
@@ -378,7 +411,7 @@ def save_data():
     
     user_ref.child('drawers').child(drawer_name).child('logs').child(random_log).set(data)
 
-    return jsonify({"message": "Data saved successfully"}), 200
+    return jsonify({"message": "Data saved successfully"}), 200    
 
 
 @app.route('/api/get_drawer_logs', methods=['GET'])
@@ -389,13 +422,17 @@ def get_drawer_logs():
 
     user_ref = db.reference('users').child(uid)
     drawer_logs = user_ref.child('drawers').child(drawer_name).child('logs')
+    drawer_title = user_ref.child('drawers').child(drawer_name).child('title').get()
 
     # loop through the logs and get the time and image
     drawer_logs = drawer_logs.get()
     if drawer_logs is None:
         return jsonify({"error": "No logs found for drawer"}), 200
     
-    print(drawer_logs)
+    # print(drawer_logs)
+
+    # append the title of the drawer to the logs
+    drawer_logs['title'] = drawer_title
 
     return jsonify(drawer_logs), 200
 
