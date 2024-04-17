@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView, Dimensions, Image } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView, Dimensions, Image, TextInput } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Error from '../components/Error';
@@ -288,6 +288,16 @@ const styles = StyleSheet.create({
         fontFamily: 'Lato_Regular',
         textAlign: 'center',
     },
+
+    input: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 10,
+        height: 40,
+        paddingHorizontal: 10,
+        marginBottom: 20,
+        color: 'black',
+    },
+
 
     textHeader3: {
         color: '#B4B6B0',
