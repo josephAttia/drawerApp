@@ -5,9 +5,9 @@ import Error from '../components/Error';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route}) {
 
-  
+  const { signuped } = route.params || {};
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }) {
     };
 
     // send the data to the server
-    axios.post('https://drawerapp.pythonanywhere.com/api/login', data)
+    axios.post('https://0b54-199-111-224-24.ngrok-free.app/api/login', data)
       .then(async (response) => {
         const uid = response.data.uid;
         await AsyncStorage.setItem('uid', uid);
@@ -55,6 +55,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
+        {signuped && <Text style={{ color: 'green', marginBottom: 20 }}>Signup successful. Please login</Text>}
         <Text style={styles.titleText}>Login</Text>
         {error && <Error errorMessage={error} duration={10000} />}
         <View style={styles.formContainer}>

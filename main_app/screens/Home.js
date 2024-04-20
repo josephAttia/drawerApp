@@ -6,13 +6,14 @@ import Error from '../components/Error';
 import { Feather } from '@expo/vector-icons';
 import Layout from './Layout';
 import place_holder_image from '../assets/placeholder_image.jpg';
-
+import addDrawerLogo from '../assets/addDrawerLogo.png';
 const { width } = Dimensions.get('window');
 
 export default function Home({ navigation }) {
     const [uid, setUid] = useState('');
     const [profile, setProfile] = useState({});
     const [drawers, setDrawers] = useState([]);
+    const [thereIsDrawers, setThereIsDrawers] = useState(false);
     const [drawerGetStatus, setDrawerGetStatus] = useState('');
     const [error, setError] = useState(null);
     const [latestDrawerActivity, setLatestDrawerActivity] = useState({});
@@ -21,12 +22,13 @@ export default function Home({ navigation }) {
 
     async function getProfile(uid) {
         try {
-            const response = await axios.get('https://drawerapp.pythonanywhere.com/api/get_profile', {
+            const response = await axios.get('https://0b54-199-111-224-24.ngrok-free.app/api/get_profile', {
                 params: { uid: uid }
             });
-            if (response.data === null){
+            if (response.data === null) {
                 getProfile(uid);
             }
+            console.log('Profile:', response.data);
             setProfile(response.data);
         } catch (error) {
             console.log('Error message:', error.message);
@@ -36,14 +38,21 @@ export default function Home({ navigation }) {
     async function getDrawers(uid) {
         setDrawerGetStatus('Getting drawers...');
         try {
-            const response = await axios.get('https://drawerapp.pythonanywhere.com/api/get_drawers', {
+            const response = await axios.get('https://0b54-199-111-224-24.ngrok-free.app/api/get_drawers', {
                 params: { uid: uid }
             });
-            if (response.data === null){
+            if (response.data === null) {
                 getDrawers(uid);
             }
-            setDrawerGetStatus('Drawers retrieved');
+            console.log('Drawers:', response.data);
+            // check if only {"drawer1": "default value"} is returned
+            if (Object.keys(response.data).length === 1) {
+                setThereIsDrawers(false);
+                return;
+            }
+            setThereIsDrawers(true);
             setDrawers(response.data);
+
         } catch (error) {
             setDrawerGetStatus('Error getting drawers');
             setError(error.message);
@@ -68,11 +77,16 @@ export default function Home({ navigation }) {
 
     async function get_latest_drawer_activity(uid) {
         try {
-            const response = await axios.get('https://8a79-199-111-225-106.ngrok-free.app/api/get_latest_drawer_activity', {
+            const response = await axios.get('https://0b54-199-111-224-24.ngrok-free.app/api/get_latest_drawer_activity', {
                 params: { uid: uid }
             });
             if (response.data) {
                 data = await response.data;
+                console.log('Latest Drawer Activity:', data);
+                if (data.error) {
+                    setThereIsDrawerActivity(false);
+                    return;
+                }
                 if (data.time) {
                     data.time = new Date(data.time).toLocaleString();
                 }
@@ -97,19 +111,24 @@ export default function Home({ navigation }) {
         }
     }
 
+    async function load_all_data() {
+        const storedUid = await AsyncStorage.getItem('uid');
+        if (!storedUid) {
+            navigation.navigate('Login');
+        }
+        setUid(storedUid);
+        getProfile(storedUid);
+        getDrawers(storedUid);
+        get_latest_drawer_activity(storedUid);
+    }
 
+    // using useEffect load the data every 10 seconds
     useEffect(() => {
-        const getUid = async () => {
-            const storedUid = await AsyncStorage.getItem('uid');
-            if (!storedUid) {
-                navigation.navigate('Login');
-            }
-            setUid(storedUid);
-            getProfile(storedUid);
-            getDrawers(storedUid);
-            get_latest_drawer_activity(storedUid);
-        };
-        getUid();
+        load_all_data();
+        const interval = setInterval(() => {
+            load_all_data();
+        }, 10000);
+        return () => clearInterval(interval);
     }, []);
 
     const getBatteryColor = (batteryLevel) => { //added this
@@ -144,15 +163,15 @@ export default function Home({ navigation }) {
                     <Feather name="box" size={20} color="#000" style={{ marginRight: 5 }} />
                     <Text style={styles.text10}>Drawer Name: {item.title}</Text>
                 </View>
-                <View style={styles.statusContainer}>
+                {/* <View style={styles.statusContainer}>
                     <Feather name="battery" size={20} color={getBatteryColor(item.battery_level)} style={{ marginRight: 5 }} />
                     <Text style={[styles.text2, { color: getBatteryColor(item.battery_level) }]}>Battery Level: {item.battery_level}</Text>
-                </View>
+                </View> */}
                 {/* replace w/ picture data <View style={styles.statusContainer}>
                     <Feather name="info" size={20} color="#FFFFFF" style={{ marginRight: 5 }} />
                     <Text style={styles.text2}>Status: {item.status}</Text>
                 </View> */}
-             
+
                 <View style={styles.statusContainer}>
                     <Feather name="alert-triangle" size={20} color={item.unauthorized_access === 1 ? 'red' : 'green'} style={{ marginRight: 5 }} />
                     <Text style={[styles.text2, { color: item.unauthorized_access === 1 ? 'red' : 'green' }]}>
@@ -167,11 +186,11 @@ export default function Home({ navigation }) {
                         {item.armed ? 'Armed' : 'Disarmed'}
                     </Text>
                 </View>
-                
+
 
                 {/* add a button to toggle armed / disarmed */}
-                <TouchableOpacity  onPress={() => {
-                    axios.post('https://8a79-199-111-225-106.ngrok-free.app/api/toggle_armed', {
+                <TouchableOpacity onPress={() => {
+                    axios.post('https://0b54-199-111-224-24.ngrok-free.app/api/toggle_armed', {
                         uid: uid,
                         drawer_id: item.id,
                     }).then((response) => {
@@ -193,25 +212,38 @@ export default function Home({ navigation }) {
 
     return (
         <Layout>
-            <ScrollView>
+            <ScrollView style={styles.main_container}>
 
                 <View style={styles.container}>
                     {/* <Error errorMessage={error} duration={100000} /> */}
                     <Text style={styles.welcome_text}>Welcome, </Text>
                     <Text style={styles.profile_name}>{profile.name}!</Text>
+
+
+                    {/* add a horizontal line here */}
+                    <View
+                        style={{
+                            borderBottomColor: 'white',
+                            borderBottomWidth: 1,
+                            width: width - 40,
+                            marginLeft: 20,
+                            marginTop: 20,
+                        }}
+                    />
+
                     <Text style={styles.textHeader3}>Latest Drawer Activity:</Text>
                     <View style={styles.home_screen_button}>
                         {thereIsDrawerActivity ? (
                             <>
 
-                                <Image source={{uri: latestDrawerActivityImage}}  style={styles.drawerImage} />
+                                <Image source={{ uri: latestDrawerActivityImage }} style={styles.drawerImage} />
                                 <Text style={styles.text2}>Drawer Name:</Text>
                                 <Text style={styles.text4}>{latestDrawerActivity?.title}</Text>
 
                                 <Text style={styles.text2}>Last Time of Access:</Text>
                                 <Text style={styles.text4}>{latestDrawerActivity?.time}</Text>
 
-                                <TouchableOpacity onPress={() =>navigation.navigate('CameraRoll', { uid: uid, drawerID: item.id })} style={styles.button}>
+                                <TouchableOpacity onPress={() => navigation.navigate('CameraRoll', { uid: uid, drawerID: item.id })} style={styles.button}>
                                     <Text style={styles.buttonText}>View More </Text>
                                 </TouchableOpacity>
                             </>
@@ -221,6 +253,10 @@ export default function Home({ navigation }) {
 
 
                     </View>
+
+
+
+
                     {/* <TouchableOpacity onPress={() => getDrawers(uid)} style={styles.button}>
                         <Text style={styles.buttonText}>Get Drawers</Text>
                     </TouchableOpacity> */}
@@ -233,14 +269,35 @@ export default function Home({ navigation }) {
                     </TouchableOpacity> */}
 
                     <Text style={styles.drawerHeader}>Drawers</Text>
-                    <FlatList
-                        data={Object.keys(drawers)
-                            .filter((key) => key !== 'drawer1')
-                            .map((key) => ({ id: key, ...drawers[key] }))}
-                        renderItem={renderDrawerInfo}
-                        keyExtractor={(item) => item.id.toString()}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
+                    {thereIsDrawers ? (
+                        <FlatList
+                            data={Object.keys(drawers)
+                                .filter((key) => key !== 'drawer1')
+                                .map((key) => ({ id: key, ...drawers[key] }))}
+                            renderItem={renderDrawerInfo}
+                            keyExtractor={(item) => item.id.toString()}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                        />) : (
+                        <>
+                            <Text style={styles.text2}>No drawers found</Text>
+                            <View style={styles.tipView}>
+                                <Text style={styles.tipToolTip}>Quick Tip:</Text>
+                                <Text style={styles.text2}>Click the button:</Text>
+                                <Image source={addDrawerLogo} style={styles.image2} />
+                                <Text style={styles.text2}>to add a new drawer</Text>
+                            </View>
+                        </>
+                    )}
+
+                    <View
+                        style={{
+                            borderBottomColor: 'white',
+                            borderBottomWidth: 1,
+                            width: width - 40,
+                            marginLeft: 20,
+                            marginTop: 20,
+                        }}
                     />
 
                     <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')} style={styles.home_screen_button}>
@@ -262,8 +319,37 @@ const styles = StyleSheet.create({
         // center this horizontally
         marginLeft: 'auto',
         marginRight: 'auto',
-
     },
+
+    image2: {
+        width: 100, // specify the width
+        height: 90, // specify the height
+
+        // center this horizontally
+        marginLeft: 'auto',
+        marginRight: 'auto',
+    },
+
+    main_container: {
+        height: '100%',
+    },
+    tipView: {
+
+        alignItems: 'center',
+        marginTop: 20,
+        backgroundColor: '#114960',
+    },
+    tipToolTip: {
+        color: '#86cdea',
+        fontSize: 15,
+        fontFamily: 'Lato_Regular',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        padding: 5,
+        backgroundColor: '#565656',
+    },
+
     welcome_text: {
         color: '#FFFFFF',
         marginTop: 70,
@@ -321,7 +407,8 @@ const styles = StyleSheet.create({
         fontSize: 20,
         justifyContent: 'center',
         fontFamily: 'Lato_Regular',
-        textAlign: 'left',
+        textAlign: 'center',
+
     },
 
     text10: {
@@ -333,7 +420,7 @@ const styles = StyleSheet.create({
     },
 
 
-    
+
     text4: {
         color: '#10F0E6',
         fontSize: 20,
@@ -367,6 +454,7 @@ const styles = StyleSheet.create({
         marginVertical: 10, // Space between cards
         padding: 15, // Inner spacin
         fontFamily: 'Lato_Regular',
+        margin:20  
     },
 
 
@@ -406,6 +494,13 @@ const styles = StyleSheet.create({
         padding: 20, /* Increasing padding */
         borderRadius: 15, /* Making the section more rounded */
         marginTop: 30, /* Adjusting margin */
+    },
+
+
+    setupInstructions: {
+        backgroundColor: '#1E1F3E',
+        marginTop: 20,
+        padding: 0,
     },
 
 })

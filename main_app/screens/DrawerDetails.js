@@ -18,7 +18,7 @@ export default function DrawerDetails({ route }) {
 
   async function get_drawer_logs(uid, drawerID) {
     // get the drawer details
-    axios.get('https://drawerApp.pythonanywhere.com/api/get_drawer_logs', {
+    axios.get('https://0b54-199-111-224-24.ngrok-free.app/api/get_drawer_logs', {
       params: { drawer_id: drawerID, uid: uid }
     })
       .then((response) => {

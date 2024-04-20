@@ -13,6 +13,12 @@ export default function SignUpScreen({ navigation }) {
   const [name, setName] = React.useState('');
   const [error, setError] = React.useState(null);
 
+  const SignupAsJoe = () => {
+    setEmail('josephattia159@gmail.com');
+    setPassword('Joseph');
+    setName('Jospeh Attia');
+  };
+
   // handle the form submission
   const handleSignUp = () => {
     const data = {
@@ -22,17 +28,13 @@ export default function SignUpScreen({ navigation }) {
     };
 
     // send the data to the server
-    axios.post('https://drawerapp.pythonanywhere.com/api/register_user', data)
+    axios.post('https://0b54-199-111-224-24.ngrok-free.app/api/register_user', data)
       .then((response) => {
-        // check if uid is in async storage and delete it before adding the new one
-        AsyncStorage.getItem('uid').then((uid) => {
-          if (uid) {
-            AsyncStorage.removeItem('uid');
-          }
-        });
-  
+        console.log('Response:', response.data); 
+        // if there is a uid in AsyncStorage, remove it
+        AsyncStorage.removeItem('uid');
         AsyncStorage.setItem('uid', response.data.uid);
-        navigation.navigate('Home');
+        navigation.navigate('Login', { signuped: true});
       })
       .catch((error) => {
         console.log('Error message:', error.response.data);
@@ -70,10 +72,20 @@ export default function SignUpScreen({ navigation }) {
             style={styles.input}
             value={password}
             onChangeText={setPassword}
+            secureTextEntry={true}
           />
           <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
             <Text style={styles.signUpButtonText}>Sign Up</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.thingy}>Already have an account? Login now</Text>
+          </TouchableOpacity>
+
+          {/* add a signup with joe */}
+          {/* <TouchableOpacity onPress={SignupAsJoe}>
+            <Text style={styles.thingy}>Sign up with Joe</Text>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>
@@ -120,9 +132,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
   },
-  signUpButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 18,
+  thingy: {
+    color: '#87CEEB',
+    fontSize: 16,
   },
 });

@@ -15,7 +15,7 @@ import uuid
 import random
 from datetime import datetime
 import requests
-from flask_mail import Mail, Message
+# from flask_mail import Mail, Message
 from operator import itemgetter
 
 # Firebase Admin Initialization
@@ -30,14 +30,14 @@ firebase_admin.initialize_app(cred, {
 app = Flask(__name__)
 CORS(app) 
 
-app.config['MAIL_SERVER']='smtp.mailgun.org'
-app.config['MAIL_PORT'] = 587 
-app.config['MAIL_USERNAME'] = 'postmaster@sandbox33440bbc07b54f77a6e95a3444ceccfb.mailgun.org'
-app.config['MAIL_PASSWORD'] = '0dd53eafdcec22f64839170d6db0d503-19806d14-45152ef5'
+# app.config['MAIL_SERVER']='smtp.mailgun.org'
+# app.config['MAIL_PORT'] = 587 
+# app.config['MAIL_USERNAME'] = 'postmaster@sandbox33440bbc07b54f77a6e95a3444ceccfb.mailgun.org'
+# app.config['MAIL_PASSWORD'] = '0dd53eafdcec22f64839170d6db0d503-19806d14-45152ef5'
 
-mail = Mail(app)
+# mail = Mail(app)
 
-app.app_context().push()
+# app.app_context().push()
 
 # def send_email():
 #     msg = Message('Hello', sender = 'isense@gmail.com', recipients = ['71papahijo@gmail.com'])
@@ -113,14 +113,6 @@ def get_user_by_email(email):
     return None
 
 
-def check_db_connection():
-    """Checks the connection to the Firebase database."""
-    try:
-        db.reference().get()
-        return True
-    except:
-        return False
-
 
 # Global variables
 data = {}
@@ -168,14 +160,13 @@ def hello_world():
 def get_user():
     """Retrieve a user's profile based on UID."""
     uid = request.args.get('uid')
+    print("UID: {0}".format(uid))
     ref = db.reference('users')
-    user = ref.child(uid).get()
+    user = ref.child(uid).get()  # Fetch the actual data
     if user is None:
         return jsonify({"error": "User not found"}), 400
-    
-    current_user_logged_in = user
-    return jsonify(user), 200
 
+    return jsonify(user), 200
 
 @app.route('/api/get_current_logged_in_user', methods=['GET'])
 def get_current_user():
@@ -193,6 +184,8 @@ def register_user():
     password = user_data['password']
     name = user_data['name']
 
+    print("Email: {0}, Password: {1}, Name: {2}".format(email, password, name))
+
     if not email or not password or not name:
         return jsonify({"error": "Missing one or more required fields"}), 400
     
@@ -203,7 +196,7 @@ def register_user():
 
     hashed_password = hash_password(password)
     print(hashed_password)
-
+    
     ref.child(uid).set({
         "email": email,
         "name": name,
@@ -217,17 +210,15 @@ def register_user():
 @app.route('/api/get_drawers', methods=['GET'])
 def get_drawers():
     """Retrieve a user's drawers."""
-    db_status = check_db_connection()
-
-    if not db_status:
-        print("Database connection error")
-        return jsonify({"error": "Database connection error"}), 500
-    
     uid = request.args.get('uid')
+    print("UID for get Drawer: {0}".format(uid))
     user_ref = db.reference('users').child(uid)
     user_drawers = user_ref.child('drawers').get()
 
+
+
     if user_drawers is None:
+        # find the uid of the user and add a default drawer
         default_drawers = {"drawer1": "default value"}
         user_ref.child('drawers').set(default_drawers)
         user_drawers = default_drawers

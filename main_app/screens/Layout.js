@@ -23,7 +23,7 @@ export default function Layout({ children}) {
                 {children}
             </View>
             <View style={styles.navBar}>
-                <TouchableOpacity onPress={() => navigation.navigate('CameraRoll')} style={styles.navItem}>
+                <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.navItem}>
                     <Feather name="home" size={30} color="white" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate("AddDrawer", { uid: uid })} style={styles.middleButton}>
@@ -40,6 +40,7 @@ export default function Layout({ children}) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        height: '100%',
     },
     content: {
         flex: 1,

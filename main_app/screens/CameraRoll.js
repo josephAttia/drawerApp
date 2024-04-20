@@ -20,10 +20,10 @@ export default function CameraRoll({ route }) {
         const date = new Date(time);
         return date.toLocaleString();
     }
-
+    
     async function fetchImages(uid, drawerID) {
         try {
-            await axios.get('https://8a79-199-111-225-106.ngrok-free.app/api/get_drawer_logs', {
+            await axios.get('https://0b54-199-111-224-24.ngrok-free.app/api/get_drawer_logs', {
                 params: { uid: uid, drawer_id: drawerID }
             }).then((response) => {
                 const logs = response.data;
@@ -33,8 +33,12 @@ export default function CameraRoll({ route }) {
                     ...logs[key]
                 }));
 
+            
                 // Sort fetchedLogs by time in ascending order
                 fetchedLogs.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+                // remove any invalid date
+                fetchedLogs = fetchedLogs.filter(log => new Date(log.time).toString() !== 'Invalid Date');
 
                 setLogs(fetchedLogs);
             });
